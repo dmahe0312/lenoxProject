@@ -19,6 +19,11 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeDriverService;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxDriverLogLevel;
+import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.remote.DesiredCapabilities;
 
 import com.relevantcodes.extentreports.ExtentReports;
 import com.relevantcodes.extentreports.ExtentTest;
@@ -34,16 +39,33 @@ public class Liidaveqa {
 	
 	
 	public static WebDriver driver;
-	public void inititateBrowser() {
-		System.setProperty("webdriver.chrome.driver","C:\\Users\\User\\Documents\\driverpath\\chromedriver.exe");
-		this.driver=new ChromeDriver();
+	public static  WebDriver inititateBrowser() {
+		System.setProperty("webdriver.chrome.driver","chromedriver.exe");
+        DesiredCapabilities capabilities = DesiredCapabilities.chrome();
+        capabilities.setCapability("network.proxy.http", "93.180.7.246");
+        capabilities.setCapability("network.proxy.http_port", "8080");
+        ChromeDriverService service =
+        	    new ChromeDriverService.Builder().withWhitelistedIps("").withVerbose(true).build();
+        	driver = new ChromeDriver(service, capabilities);
+       
+		return driver;
+		
 	}
-	public void inititateBrowserUsingManager() {
+	public static  WebDriver inititateFirefoxBrowser() {
+		System.setProperty("webdriver.gecko.driver","geckodriver.exe");
+		FirefoxOptions options = new FirefoxOptions();
+		options.addArguments("--headless");
+		options.setLogLevel(FirefoxDriverLogLevel.TRACE);
+		driver = new FirefoxDriver(options);
+		return driver=new FirefoxDriver();
+		
+	}
+	public WebDriver inititateBrowserUsingManager() {
 		WebDriverManager.chromedriver().setup();
-		this.driver=new ChromeDriver();
+		return driver=new ChromeDriver();
 	}
 	public static Map<String,String> testDataReader(int sheetno) throws IOException {
-		String path=System.getProperty("user.dir","\\TestData.xls");
+		String path=System.getProperty("user.dir","\\TestData.xlsx");
 		FileInputStream fis=new FileInputStream(path);
 		Workbook wb=new XSSFWorkbook(fis);
 		Sheet s =wb.getSheetAt(sheetno);
@@ -101,10 +123,10 @@ public class Liidaveqa {
 	
 	}
 	@Test
-	public static void execution() throws IOException {
-		Liidaveqa l=new Liidaveqa();
+	public void execution() throws IOException {
+//		Liidaveqa l=new Liidaveqa();
 		//l.inititateBrowserUsingManager();
-		l.inititateBrowser();
+		WebDriver driver = inititateBrowserUsingManager();
 		driver.get("liidaveqa.com");
 		driver.findElement(By.xpath("//a[contains(text(),'Sign In')")).click();
 		Liidaveqa.setUserNamePassword();		
@@ -116,7 +138,7 @@ public class Liidaveqa {
 		WebElement nextButton=driver.findElement(By.className("next icon icon-arrow-right"));
 		boolean flag=false;
 		Map<String,String> productDetails=new HashMap<String,String>();
-		do {			
+		do {			  
 		List<WebElement> elements=driver.findElements(By.xpath("//span[text()='Model/Part #: ']"));
 		for(WebElement element:elements) {
 			if(element.getText().equalsIgnoreCase("10T46 ")) {
